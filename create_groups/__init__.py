@@ -1,4 +1,3 @@
-import numpy as np
 import re
 import os
 import enum
@@ -10,6 +9,8 @@ import itertools
 import functools
 import sys
 import os.path
+
+import numpy as np
 
 import submodule_utils as utils
 from submodule_utils.mixins import OutputMixin
