@@ -505,12 +505,15 @@ class GroupCreator(OutputMixin):
             Groups in Yiping format
         """
         with open(self.out_location, 'w') as f:
-            json.dump(convert_yiping_to_mitch_format(groups), f)
+            json.dump(groups, f)
 
     def run(self):
         groups, ignored_slides = self.generate_groups()
+        groups = convert_yiping_to_mitch_format(groups)
         self.write_groups(groups)
         # self.group_summary(groups)
-        self.print_group_summary(groups, [k.replace('_', ' ') for k in groups.keys()])
+        group_names = {chunk['id']: f"Group {chunk['id'] + 1}"  for chunk in groups['chunks']}
+        self.print_group_summary(groups, group_names=group_names)
         print('Ignored Slides')
         print(ignored_slides)
+
