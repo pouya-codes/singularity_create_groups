@@ -510,6 +510,7 @@ class GroupCreator(OutputMixin):
     def run(self):
         groups, ignored_slides = self.generate_groups()
         self.write_groups(groups)
-        self.group_summary(groups)
+        # self.group_summary(groups)
+        self.print_group_summary(groups, [k.replace('_', ' ') for k in groups.keys()])
         print('Ignored Slides')
         print(ignored_slides)
