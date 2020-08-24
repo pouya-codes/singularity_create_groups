@@ -26,7 +26,6 @@ From: debian:9
     conda update conda
     git clone https://github.com/fireofearth/submodule_utils.git
     pip install /submodule_utils
-    pip install numpy
     pip install pytest
     conda list
 

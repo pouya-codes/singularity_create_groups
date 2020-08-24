@@ -23,5 +23,11 @@ if [[ ! -d create_groups/tests/mock ]]; then
     tar xvzf create_groups/tests/mock.tar.gz -C create_groups/tests/
 fi
 
-pytest -s -vv create_groups/tests
+mkdir -p create_groups/tests/outputs
+
+# pytest -s -vv create_groups/tests/test_create_groups.py::TestCreateGroups::test_parse_args_1
+# pytest -s -vv create_groups/tests/test_auxiliary.py
+# pytest -s -vv create_groups/tests/test_create_groups.py
 # pytest -s -vv create_groups/tests/test_balance_groups.py
+
+pytest -s -vv create_groups/tests

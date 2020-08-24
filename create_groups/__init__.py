@@ -513,7 +513,8 @@ class GroupCreator(OutputMixin):
         self.write_groups(groups)
         # self.group_summary(groups)
         group_names = {chunk['id']: f"Group {chunk['id'] + 1}"  for chunk in groups['chunks']}
-        self.print_group_summary(groups, group_names=group_names)
+        summary = self.print_group_summary(groups, group_names=group_names)
         print('Ignored Slides')
         print(ignored_slides)
+        return summary
 
