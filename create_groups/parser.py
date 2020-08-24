@@ -1,7 +1,7 @@
 import argparse
 
 from submodule_utils import (BALANCE_PATCHES_OPTIONS, DATASET_ORIGINS,
-        PATCH_PATTERN_WORDS)
+        PATCH_PATTERN_WORDS, set_random_seed, DEAFULT_SEED)
 from submodule_utils.manifest.arguments import manifest_arguments
 from submodule_utils.arguments import (
         AIMArgumentParser,
@@ -19,13 +19,7 @@ The patient_groups.json file uses Mitch's format for groups i.e. it is a json fi
             "id": int,
             "imgs": list of paths to patches
         },
-        ...
-    ]
-}
-
-The component also produces counts for the number of patches, slides and patients for each category like the below:
-
-|| Patient Counts || MMRD || P53ABN || P53WT || POLE || Total ||
+        ...DEAFULT_SEEDE || Total ||
 |  Patient in Group 1 | 9 | 13 | 20 | 3 | 45 |
 |  Patient in Group 2 | 9 | 13 | 20 | 3 | 45 |
 |  Patient in Group 3 | 8 | 13 | 20 | 3 | 44 |
@@ -48,34 +42,14 @@ What are **categories**?
 The --balance_patches flag gives the following options (illustrated):
 
 1) `--balance_patches overall` sets every cell to the min cell.
-
-|| Patch Counts || MMRD || P53ABN || P53WT || POLE || Total ||
-|  Patch in Group 1 | 1791 | 1791 | 1791 | 1791 | 7164 |
-|  Patch in Group 2 | 1791 | 1791 | 1791 | 1791 | 7164 |
-|  Patch in Group 3 | 1791 | 1791 | 1791 | 1791 | 7164 |
-| Total | 5373 | 5373 | 5373 | 5373 | 21492 |
-
-2) `--balance_patches group` sets every cell to the min cell in each group.
+DEAFULT_SEEDll to the min cell in each group.
 
 || Patch Counts || MMRD || P53ABN || P53WT || POLE || Total ||
 |  Patch in Group 1 | 1791 | 1791 | 1791 | 1791 | 7164 |
 |  Patch in Group 2 | 15261 | 15261 | 15261 | 15261 | 61044 |
 |  Patch in Group 3 | 7881 | 7881 | 7881 | 7881 | 31524 |
 | Total | 24933 | 24933 | 24933 | 24933 | 99732 |
-
-3) `--balance_patches category` sets every cell to the min cell in each category.
-
-|| Patch Counts || MMRD || P53ABN || P53WT || POLE || Total ||
-|  Patch in Group 1 | 15261 | 43918 | 34979 | 1791 | 95949 |
-|  Patch in Group 2 | 15261 | 43918 | 34979 | 1791 | 95949 |
-|  Patch in Group 3 | 15261 | 43918 | 34979 | 1791 | 95949 |
-| Total | 45783 | 131754 | 104937 | 5373 | 287847 |
-
-3) `--balance_patches overall=cap_amt` caps the number of patches in every cell by cap_amt.
-`--balance_patches overall=30000`
-
-|| Patch Counts || MMRD || P53ABN || P53WT || POLE || Total ||
-|  Patch in Group 1 | 30000 | 30000 | 30000 | 1791 | 91791 |
+set_random_seedup 1 | 30000 | 30000 | 30000 | 1791 | 91791 |
 |  Patch in Group 2 | 15261 | 30000 | 30000 | 17248 | 92509 |
 |  Patch in Group 3 | 19431 | 30000 | 30000 | 7881 | 87312 |
 | Total | 64692 | 90000 | 90000 | 26920 | 271612 |
@@ -116,7 +90,7 @@ TODO: make GroupCreator.group_summary() return DataFrame. Test against DataFrame
 @manifest_arguments(description=description, epilog=epilog,
         default_component_id=default_component_id)
 def create_parser(parser):
-    parser.add_argument("--seed", type=int, default=default_seed,
+    parser.add_argument("--seed", type=int, default=DEAFULT_SEED,
             help="Seed for random shuffle.")
 
     parser.add_argument("--n_groups", type=int, default=default_n_groups,
@@ -186,3 +160,9 @@ def create_parser(parser):
 
     parser.add_argument("--max_patient_patches", type=int, required=False,
             help="Select at most max_patient_patches number of patches from each patient.")
+
+def get_args():
+        parser = create_parser()
+        args = parser.get_args()
+        set_random_seed(args.seed)
+        return args
