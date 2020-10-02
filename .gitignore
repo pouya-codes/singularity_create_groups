@@ -6,3 +6,6 @@ __pycache__/
 .pytest_cache
 create_groups/tests/mock/
 create_groups/tests/outputs/
+submodule_cv/
+submodule_utils/
+.idea/

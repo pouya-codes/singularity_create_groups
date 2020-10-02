@@ -26,9 +26,7 @@ From: debian:9
     conda config --file /.condarc --add channels defaults
     conda config --file /.condarc --add channels conda-forge
     conda update conda
-    pip install pyyaml h5py openslide-python tabulate matplotlib pandas Shapely numpy pytest
 
-    pip install numpy
-    pip install pytest
+    pip install pyyaml h5py openslide-python tabulate matplotlib pandas Shapely numpy pytest
 %runscript
     python app.py $*
