@@ -465,9 +465,20 @@ class GroupCreator(OutputMixin):
             random.seed(self.seed)
             random.shuffle(patient_subtype_dict[subtype_name])
             step_size = int(np.ceil(patient_subtype_count[subtype_name] / self.n_groups))
+            # check is there any empty group or not
+            reduced_step = False
+            if (step_size*(self.n_groups-1)) == patient_subtype_count[subtype_name]:
+                reduced_step = True
+                step_size-=1
             # pick patients to add patient patches to group
-            for group_idx, patient_idx in enumerate(range(0, patient_subtype_count[subtype_name], step_size)):
-                selected_patients = patient_subtype_dict[subtype_name][patient_idx:patient_idx+step_size]
+            steps = range(0, patient_subtype_count[subtype_name], step_size)
+            for group_idx, patient_idx in enumerate(steps):
+                if group_idx > (self.n_groups - 1):
+                    break
+                if group_idx == (self.n_groups-1) and reduced_step :
+                    selected_patients = patient_subtype_dict[subtype_name][patient_idx:]
+                else :
+                    selected_patients = patient_subtype_dict[subtype_name][patient_idx:patient_idx+step_size]
                 for selected_patient in selected_patients:
                     if self.max_patient_patches:
                         groups_subtypes['group_' + str(group_idx + 1)][subtype_name] += self.select_patches_from_dict(
