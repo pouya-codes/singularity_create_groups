@@ -467,7 +467,7 @@ class GroupCreator(OutputMixin):
             step_size = int(np.ceil(patient_subtype_count[subtype_name] / self.n_groups))
             # check is there any empty group or not
             reduced_step = False
-            if (step_size*(self.n_groups-1)) == patient_subtype_count[subtype_name]:
+            if step_size!=1 and (step_size*(self.n_groups-1)) == patient_subtype_count[subtype_name]:
                 reduced_step = True
                 step_size-=1
             # pick patients to add patient patches to group
