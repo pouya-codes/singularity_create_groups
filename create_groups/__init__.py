@@ -88,6 +88,7 @@ class GroupCreator(OutputMixin):
         list of str
             List of patch paths
         """
+        patch_paths = []
         patch_path_wildcard = self.patch_location
         patterns = sorted([[v, k] for k, v in self.patch_pattern.items()],
                 key=lambda x: x[0])
