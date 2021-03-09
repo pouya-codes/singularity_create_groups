@@ -38,7 +38,7 @@ class GroupCreator(OutputMixin):
 
     n_groups : int
         The number of groups in groups file
-    
+
     is_binary : bool
         Whether we want to categorize patches by the Tumor/Normal category (true) or by the subtype category (false)
 
@@ -76,10 +76,10 @@ class GroupCreator(OutputMixin):
 
     max_patient_patches : int
         Select at most max_patient_patches number of patches from each patient
-    
+
     TODO: fix documentation of balance_patches
     """
-    
+
     def get_patch_paths(self):
         """Get patch paths from patch location that match the patch paths. Filters patch paths by values of words.
 
@@ -94,12 +94,22 @@ class GroupCreator(OutputMixin):
         patterns = map(lambda x: x[1], patterns)
         for word in patterns:
             if word in self.filter_labels:
-                patch_path_wildcard = os.path.join(patch_path_wildcard,
-                        self.filter_labels[word])
+                if word=='subtype':
+                    patch_path_wildcard = os.path.join(patch_path_wildcard, '**')
+                else:
+                    patch_path_wildcard = os.path.join(patch_path_wildcard,
+                                                       self.filter_labels[word])
             else:
                 patch_path_wildcard = os.path.join(patch_path_wildcard, '**')
         patch_path_wildcard = os.path.join(patch_path_wildcard, '*.png')
-        patch_paths = glob.glob(os.path.join(patch_path_wildcard))
+        if 'subtype' in self.filter_labels:
+            new_patch_path_wildcards = utils.get_subtype_paths(self.filter_labels['subtype'],
+                                                               self.patch_pattern,
+                                                               patch_path_wildcard)
+            for new_patch_path_wildcard in new_patch_path_wildcards:
+                patch_paths += glob.glob(os.path.join(new_patch_path_wildcard))
+        else:
+            patch_paths += glob.glob(os.path.join(patch_path_wildcard))
         return patch_paths
 
     def __init__(self, config):
@@ -126,7 +136,7 @@ class GroupCreator(OutputMixin):
         self.max_patient_patches = config.max_patient_patches
         # modify in code for debugging
         self.debug = False
-    
+
     def select_patches_from_dict_as_dict(self, dict_patch, max_patches):
         """Select at most max_patches patches from dict_patch, returning the patches as a dict.
         """
@@ -152,14 +162,14 @@ class GroupCreator(OutputMixin):
 
     def select_patches_from_dict(self, dict_patch, max_patches=None):
         """Select at most max_patches patches from dict_patch, or return all patches if max_patches is defined.
-        
+
         Will select patches unifromly across all list in dict if max_patches is smaller than the amount of patches the patient has.
 
         Parameters
         ----------
         dict_patch : dict of list
             {key: [patch_path]}
-        
+
         max_patches : int
             the number of patches to select from slide patches in dict_patch
 
@@ -186,12 +196,12 @@ class GroupCreator(OutputMixin):
         ----------
         subtype_patient_slide_patch : dict
             {subtype: {patient: {slide_id: [patch_path]}}
-        
+
         Returns
         -------
         dict
             {patient: {subtype: number of patches to select}}
-        
+
         dict
             {patient: {subtype: number of patches}}
         """
@@ -246,7 +256,7 @@ class GroupCreator(OutputMixin):
         groups = {}
         for group_idx in range(self.n_groups):
             groups['group_' + str(group_idx + 1)] = []
-        
+
         if self.balance_patches is None:
             for group_idx, groups_subtype in groups_subtypes.items():
                 for patches in groups_subtype.values():
@@ -254,7 +264,7 @@ class GroupCreator(OutputMixin):
 
         elif isinstance(self.balance_patches, str):
             if self.balance_patches == 'overall':
-                num_patches_to_pick = min(map(lambda d: min(map(len, d.values())),          
+                num_patches_to_pick = min(map(lambda d: min(map(len, d.values())),
                         groups_subtypes.values()))
                 for group_idx, group_subtypes in groups_subtypes.items():
                     for patches in group_subtypes.values():
@@ -297,7 +307,7 @@ class GroupCreator(OutputMixin):
                 for groups_patches_to_select in subtypes_groups_patches_to_select.values():
                     for group_idx, patches in groups_patches_to_select.items():
                         groups[group_idx] += patches
-            
+
             else:
                 raise NotImplementedError(f"Balance type {self.balance_patches[0]} is not implemented.")
         else:
@@ -397,7 +407,7 @@ class GroupCreator(OutputMixin):
         -------
         dict
             Groups in Yiping format
-        
+
         list of str
             Slides excluded from groups
         """
@@ -446,7 +456,7 @@ class GroupCreator(OutputMixin):
         # dict {subtype: number of patients}
         patient_subtype_count = dict(
             zip(subtype_names, [len(patient_subtype_dict[s]) for s in subtype_names]))
-        
+
         # precompute how many patches we need from each (subtype, patient)
         patient_subtype_patch_to_select_count = None
         if self.max_patient_patches:
@@ -505,7 +515,7 @@ class GroupCreator(OutputMixin):
         #     random.shuffle(groups['group_' + str(group_idx + 1)])
 
         return groups, ignored_slides
-    
+
     def write_groups(self, groups):
         """Converts groups in Yiping format to Mitch format and writes it to
         self.out_location as a JSON file
@@ -528,4 +538,3 @@ class GroupCreator(OutputMixin):
         print('Ignored Slides')
         print(ignored_slides)
         return summary
-
