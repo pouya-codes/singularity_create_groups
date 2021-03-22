@@ -24,7 +24,7 @@ default_n_groups = 3
 default_subtypes = {'MMRD':0, 'P53ABN': 1, 'P53WT': 2, 'POLE': 3}
 default_patch_pattern = 'annotation/subtype/slide'
 default_filter_labels = {}
-default_dataset_origin = 'ovcare'
+default_dataset_origin = ['ovcare']
 default_min_patches = 10
 default_max_patches = 1000000
 
@@ -54,7 +54,7 @@ class GroupCreator(OutputMixin):
         Whether we want to balance the patches in each category. Options:
          - 'overall': we will select the number of patches of every (group, category) to the number of patches in (group, category) that is the smallest.
 
-    dataset_origin : str
+    dataset_origin : list of str
         The origins of the slide dataset the patches are generated from. One of DATASET_ORIGINS
 
     patch_location : str

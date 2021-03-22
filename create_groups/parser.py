@@ -118,7 +118,7 @@ def create_parser(parser):
             "(see description for more details). In case (2), we will cap the number of patches in "
             "every group, category, or overall to the number cap_amt.")
 
-    parser.add_argument('--dataset_origin', type=dataset_origin,
+    parser.add_argument('--dataset_origin', type=dataset_origin, nargs='+',
             default=default_dataset_origin,
             help="The origins of the slide dataset the patches are generated from. "
             f"One of {tuple(DATASET_ORIGINS)}")
