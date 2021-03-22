@@ -12,7 +12,7 @@
 usage: app.py [-h] [--seed SEED] [--n_groups N_GROUPS]
               [--subtypes SUBTYPES [SUBTYPES ...]] [--is_binary]
               [--is_multiscale] [--balance_patches BALANCE_PATCHES]
-              [--dataset_origin DATASET_ORIGIN] --patch_location
+              [--dataset_origin [DATASET_ORIGIN ...]] --patch_location
               PATCH_LOCATION [--patch_pattern PATCH_PATTERN]
               [--filter_labels FILTER_LABELS [FILTER_LABELS ...]]
               --out_location OUT_LOCATION [--min_patches MIN_PATCHES]
@@ -137,8 +137,8 @@ optional arguments:
                         Optional method to balance patches. Can choose (1) ('group', 'overall', 'category') or (2) one of ('group=cap_amt', 'overall=cap_amt', 'category=cap_amt').In the case (1), we will balance out the patches in every group, category, or overall (see description for more details). In case (2), we will cap the number of patches in every group, category, or overall to the number cap_amt.
                          (default: None)
 
-  --dataset_origin DATASET_ORIGIN
-                        The origins of the slide dataset the patches are generated from. One of ('ovcare', 'tcga')
+  --dataset_origin [DATASET_ORIGIN ...]
+                        List of the origins of the slide dataset the patches are generated from. Could be ('ovcare', 'tcga')
                          (default: ovcare)
 
   --patch_location PATCH_LOCATION
