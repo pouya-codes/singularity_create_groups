@@ -490,7 +490,7 @@ class GroupCreator(OutputMixin):
             for group_idx in range(self.n_groups):
                 selected_patients = []
                 for origin in self.dataset_origin:
-                    start = 0 if group_idx==0 else sum(steps[origin][:group_idx-1])
+                    start = sum(steps[origin][:group_idx])
                     selected_patients += patient_subtype_origin_dict[subtype_name][origin][start:start+steps[origin][group_idx]]
                 for selected_patient in selected_patients:
                     if self.max_patient_patches:
