@@ -448,15 +448,25 @@ class GroupCreator(OutputMixin):
             ignored_slide_subtype, ignored_slide_patient_num, ignored_slide_slide_id = ignored_slide.split('/')
             del subtype_patient_slide_patch[ignored_slide_subtype][ignored_slide_patient_num][ignored_slide_slide_id]
 
-        # dict {subtype: list of patients}
-        patient_subtype_dict = dict(
-            zip(subtype_names, [[] for s in subtype_names]))
-        for subtype, patients in subtype_patient_slide_patch.items():
-            patient_subtype_dict[subtype] += list(patients.keys())
+        # dict {subtype: {origin: list of patients }}
+        patient_subtype_origin_dict = dict(
+            zip(subtype_names, [{} for s in subtype_names]))
 
-        # dict {subtype: number of patients}
-        patient_subtype_count = dict(
-            zip(subtype_names, [len(patient_subtype_dict[s]) for s in subtype_names]))
+        for subtype in subtype_names:
+            for origin in self.dataset_origin:
+                patient_subtype_origin_dict[subtype][origin]  = []
+        for subtype, patients in subtype_patient_slide_patch.items():
+            for patient, slides in patients.items():
+                patient_subtype_origin_dict[subtype][utils.get_origin(next(iter(slides)), self.dataset_origin)] += [patient]
+
+        # dict {subtype: {origin: number of patients }}
+        patient_subtype_origin_count = dict(
+            zip(subtype_names, [{} for s in subtype_names]))
+        for subtype in subtype_names:
+            for origin in self.dataset_origin:
+                count = len(patient_subtype_origin_dict[subtype][origin])
+                assert count!=0, f"There is no patient for subtype -{subtype}- in origin -{origin}-"
+                patient_subtype_origin_count[subtype][origin] = count
 
         # precompute how many patches we need from each (subtype, patient)
         patient_subtype_patch_to_select_count = None
@@ -474,22 +484,14 @@ class GroupCreator(OutputMixin):
         for subtype_name in subtype_names:
             # randomize occurance of patients to put into which group
             random.seed(self.seed)
-            random.shuffle(patient_subtype_dict[subtype_name])
-            step_size = int(np.ceil(patient_subtype_count[subtype_name] / self.n_groups))
-            # check is there any empty group or not
-            reduced_step = False
-            if step_size!=1 and (step_size*(self.n_groups-1)) == patient_subtype_count[subtype_name]:
-                reduced_step = True
-                step_size-=1
-            # pick patients to add patient patches to group
-            steps = range(0, patient_subtype_count[subtype_name], step_size)
-            for group_idx, patient_idx in enumerate(steps):
-                if group_idx > (self.n_groups - 1):
-                    break
-                if group_idx == (self.n_groups-1) and reduced_step :
-                    selected_patients = patient_subtype_dict[subtype_name][patient_idx:]
-                else :
-                    selected_patients = patient_subtype_dict[subtype_name][patient_idx:patient_idx+step_size]
+            for origin in self.dataset_origin:
+                random.shuffle(patient_subtype_origin_dict[subtype_name][origin])
+            steps = utils.find_steps(patient_subtype_origin_count[subtype_name], self.n_groups)
+            for group_idx in range(self.n_groups):
+                selected_patients = []
+                for origin in self.dataset_origin:
+                    start = 0 if group_idx==0 else sum(steps[origin][:group_idx-1])
+                    selected_patients += patient_subtype_origin_dict[subtype_name][origin][start:start+steps[origin][group_idx]]
                 for selected_patient in selected_patients:
                     if self.max_patient_patches:
                         groups_subtypes['group_' + str(group_idx + 1)][subtype_name] += self.select_patches_from_dict(
