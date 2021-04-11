@@ -1,23 +1,24 @@
-# Docker Create Groups
+# Create Groups
 
-**Before runing any experiment to be sure you are using the latest commits of all modules run the following script:**
+
+### Development Information ###
 
 ```
-/projects/ovcare/classification/singularity_modules/update_moudles.sh
+Date Created: 22 July 2020
+Last Update: 10 March 2021 by Amirali
+Developer: Colin Chen
+Version: 1.0
+```
+
+**Before running any experiment to be sure you are using the latest commits of all modules run the following script:**
+```
+(cd /projects/ovcare/classification/singularity_modules ; ./update_modules.sh --bcgsc-pass your/bcgsc/path)
 ```
 
 ## Usage
 
 ```
-usage: app.py [-h] [--seed SEED] [--n_groups N_GROUPS]
-              [--subtypes SUBTYPES [SUBTYPES ...]] [--is_binary]
-              [--is_multiscale] [--balance_patches BALANCE_PATCHES]
-              [--dataset_origin [DATASET_ORIGIN ...]] --patch_location
-              PATCH_LOCATION [--patch_pattern PATCH_PATTERN]
-              [--filter_labels FILTER_LABELS [FILTER_LABELS ...]]
-              --out_location OUT_LOCATION [--min_patches MIN_PATCHES]
-              [--max_patches MAX_PATCHES]
-              [--max_patient_patches MAX_PATIENT_PATCHES]
+usage: app.py [-h] {from-experiment-manifest,from-arguments} ...
 
 Splits patches to groups by patient case and saves the path to these patches in a group file (i.e. /path/to/patient_groups.json).
 The patient_groups.json file uses Mitch's format for groups i.e. it is a json file with the format
@@ -28,13 +29,7 @@ The patient_groups.json file uses Mitch's format for groups i.e. it is a json fi
             "id": int,
             "imgs": list of paths to patches
         },
-        ...
-    ]
-}
-
-The component also produces counts for the number of patches, slides and patients for each category like the below:
-
-|| Patient Counts || MMRD || P53ABN || P53WT || POLE || Total ||
+        ...DEAFULT_SEEDE || Total ||
 |  Patient in Group 1 | 9 | 13 | 20 | 3 | 45 |
 |  Patient in Group 2 | 9 | 13 | 20 | 3 | 45 |
 |  Patient in Group 3 | 8 | 13 | 20 | 3 | 44 |
@@ -56,34 +51,14 @@ What are **categories**?
 The --balance_patches flag gives the following options (illustrated):
 
 1) `--balance_patches overall` sets every cell to the min cell.
-
-|| Patch Counts || MMRD || P53ABN || P53WT || POLE || Total ||
-|  Patch in Group 1 | 1791 | 1791 | 1791 | 1791 | 7164 |
-|  Patch in Group 2 | 1791 | 1791 | 1791 | 1791 | 7164 |
-|  Patch in Group 3 | 1791 | 1791 | 1791 | 1791 | 7164 |
-| Total | 5373 | 5373 | 5373 | 5373 | 21492 |
-
-2) `--balance_patches group` sets every cell to the min cell in each group.
+DEAFULT_SEEDll to the min cell in each group.
 
 || Patch Counts || MMRD || P53ABN || P53WT || POLE || Total ||
 |  Patch in Group 1 | 1791 | 1791 | 1791 | 1791 | 7164 |
 |  Patch in Group 2 | 15261 | 15261 | 15261 | 15261 | 61044 |
 |  Patch in Group 3 | 7881 | 7881 | 7881 | 7881 | 31524 |
 | Total | 24933 | 24933 | 24933 | 24933 | 99732 |
-
-3) `--balance_patches category` sets every cell to the min cell in each category.
-
-|| Patch Counts || MMRD || P53ABN || P53WT || POLE || Total ||
-|  Patch in Group 1 | 15261 | 43918 | 34979 | 1791 | 95949 |
-|  Patch in Group 2 | 15261 | 43918 | 34979 | 1791 | 95949 |
-|  Patch in Group 3 | 15261 | 43918 | 34979 | 1791 | 95949 |
-| Total | 45783 | 131754 | 104937 | 5373 | 287847 |
-
-3) `--balance_patches overall=cap_amt` caps the number of patches in every cell by cap_amt.
-`--balance_patches overall=30000`
-
-|| Patch Counts || MMRD || P53ABN || P53WT || POLE || Total ||
-|  Patch in Group 1 | 30000 | 30000 | 30000 | 1791 | 91791 |
+set_random_seedup 1 | 30000 | 30000 | 30000 | 1791 | 91791 |
 |  Patch in Group 2 | 15261 | 30000 | 30000 | 17248 | 92509 |
 |  Patch in Group 3 | 19431 | 30000 | 30000 | 7881 | 87312 |
 | Total | 64692 | 90000 | 90000 | 26920 | 271612 |
@@ -114,6 +89,41 @@ If --max_patient_patches is set, then we will select max_patient_patches from ea
  (2) this will select patches uniformly across all categories belonging to the patient. For example if categories=('Tumor', 'Normal') then we will select 30 patches each category unless one category has <30 slides in which case we select we select >30 patches in the other category until we have 60 in total.
  (3) --max_patient_patches is applied before --balance_patches if both flags are set
 
+positional arguments:
+  {from-experiment-manifest,from-arguments}
+                        Choose whether to use arguments from experiment manifest or from commandline
+    from-experiment-manifest
+                        Use experiment manifest
+
+    from-arguments      Use arguments
+
+optional arguments:
+  -h, --help            show this help message and exit
+
+usage: app.py from-experiment-manifest [-h] [--component_id COMPONENT_ID]
+                                       experiment_manifest_location
+
+positional arguments:
+  experiment_manifest_location
+
+optional arguments:
+  -h, --help            show this help message and exit
+
+  --component_id COMPONENT_ID
+
+usage: app.py from-arguments [-h] [--seed SEED] [--n_groups N_GROUPS]
+                             [--subtypes SUBTYPES [SUBTYPES ...]]
+                             [--is_binary] [--is_multiscale]
+                             [--balance_patches BALANCE_PATCHES]
+                             [--dataset_origin DATASET_ORIGIN [DATASET_ORIGIN ...]]
+                             --patch_location PATCH_LOCATION
+                             [--patch_pattern PATCH_PATTERN]
+                             [--filter_labels FILTER_LABELS [FILTER_LABELS ...]]
+                             --out_location OUT_LOCATION
+                             [--min_patches MIN_PATCHES]
+                             [--max_patches MAX_PATCHES]
+                             [--max_patient_patches MAX_PATIENT_PATCHES]
+
 optional arguments:
   -h, --help            show this help message and exit
 
@@ -137,9 +147,9 @@ optional arguments:
                         Optional method to balance patches. Can choose (1) ('group', 'overall', 'category') or (2) one of ('group=cap_amt', 'overall=cap_amt', 'category=cap_amt').In the case (1), we will balance out the patches in every group, category, or overall (see description for more details). In case (2), we will cap the number of patches in every group, category, or overall to the number cap_amt.
                          (default: None)
 
-  --dataset_origin [DATASET_ORIGIN ...]
-                        List of the origins of the slide dataset the patches are generated from. Could be ('ovcare', 'tcga')
-                         (default: ovcare)
+  --dataset_origin DATASET_ORIGIN [DATASET_ORIGIN ...]
+                        List of the origins of the slide dataset the patches are generated from. Should be from ('ovcare', 'tcga', 'other'). (For multiple origins, works for TCGA+ovcare. Mix of Other origins must be tested.)
+                         (default: ['ovcare'])
 
   --patch_location PATCH_LOCATION
                         root directory of all patches of a study. The patch directory structure is '/patch_location/patch_pattern/x_y.png'. See --patch_pattern below. An example is '/projects/ovcare/classification/cchen/ml/data/local_ec_100/patches_256_sorted'
@@ -169,8 +179,9 @@ optional arguments:
                         Select at most max_patient_patches number of patches from each patient.
                          (default: None)
 
+```  
 TODO: there is a chance --balance_patches sets empty groups. This happens if any patches for some (group, category) is zero.
 TODO: in create_groups, variables are named 'subtype' instead of 'category'. That leads to confusion.
-TODO: further explain how --max_patient_patches works in description
-TODO: make GroupCreator.group_summary() return DataFrame. Test against DataFrame output
-```
+TODO: further explain how --max_patient_patches works in description.
+TODO: make GroupCreator.group_summary() return DataFrame. Test against DataFrame output.
+
