@@ -80,12 +80,13 @@ If --max_patient_patches is set, then we will select max_patient_patches from ea
  (2) this will select patches uniformly across all categories belonging to the patient. For example if categories=('Tumor', 'Normal') then we will select 30 patches each category unless one category has <30 slides in which case we select we select >30 patches in the other category until we have 60 in total.
  (3) --max_patient_patches is applied before --balance_patches if both flags are set"""
 
-epilog="""
-TODO: there is a chance --balance_patches sets empty groups. This happens if any patches for some (group, category) is zero.
-TODO: in create_groups, variables are named 'subtype' instead of 'category'. That leads to confusion.
-TODO: further explain how --max_patient_patches works in description
-TODO: make GroupCreator.group_summary() return DataFrame. Test against DataFrame output
-"""
+# epilog="""
+# TODO: there is a chance --balance_patches sets empty groups. This happens if any patches for some (group, category) is zero.
+# TODO: in create_groups, variables are named 'subtype' instead of 'category'. That leads to confusion.
+# TODO: further explain how --max_patient_patches works in description
+# TODO: make GroupCreator.group_summary() return DataFrame. Test against DataFrame output
+# """
+epilog=""
 
 @manifest_arguments(description=description, epilog=epilog,
         default_component_id=default_component_id)
@@ -120,8 +121,9 @@ def create_parser(parser):
 
     parser.add_argument('--dataset_origin', type=dataset_origin, nargs='+',
             default=default_dataset_origin,
-            help="The origins of the slide dataset the patches are generated from. "
-            f"One of {tuple(DATASET_ORIGINS)}")
+            help="List of the origins of the slide dataset the patches are generated from. "
+            f"Should be from {tuple(DATASET_ORIGINS)}. "
+            "(For multiple origins, works for TCGA+ovcare. Mix of Other origins must be tested.)")
 
     parser.add_argument("--patch_location", type=dir_path, required=True,
             help="root directory of all patches of a study. The patch directory structure is "
