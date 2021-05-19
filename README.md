@@ -5,7 +5,7 @@
 
 ```
 Date Created: 22 July 2020
-Last Update: 10 March 2021 by Amirali
+Last Update: 18 May 2021 by Amirali
 Developer: Colin Chen
 Version: 1.0
 ```
@@ -116,13 +116,22 @@ usage: app.py from-arguments [-h] [--seed SEED] [--n_groups N_GROUPS]
                              [--is_binary] [--is_multiscale]
                              [--balance_patches BALANCE_PATCHES]
                              [--dataset_origin DATASET_ORIGIN [DATASET_ORIGIN ...]]
-                             --patch_location PATCH_LOCATION
                              [--patch_pattern PATCH_PATTERN]
                              [--filter_labels FILTER_LABELS [FILTER_LABELS ...]]
                              --out_location OUT_LOCATION
                              [--min_patches MIN_PATCHES]
                              [--max_patches MAX_PATCHES]
                              [--max_patient_patches MAX_PATIENT_PATCHES]
+                             {use-extracted-patches,use-hd5} ...
+
+positional arguments:
+  {use-extracted-patches,use-hd5}
+                        Specify how to load patches.
+                            There are 2 ways of loading patches: by use_extracted_patches and by use_hd5.
+    use-extracted-patches
+                        Use extracted and saved patches
+
+    use-hd5             Use hd5 files
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -151,10 +160,6 @@ optional arguments:
                         List of the origins of the slide dataset the patches are generated from. Should be from ('ovcare', 'tcga', 'other'). (For multiple origins, works for TCGA+ovcare. Mix of Other origins must be tested.)
                          (default: ['ovcare'])
 
-  --patch_location PATCH_LOCATION
-                        root directory of all patches of a study. The patch directory structure is '/patch_location/patch_pattern/x_y.png'. See --patch_pattern below. An example is '/projects/ovcare/classification/cchen/ml/data/local_ec_100/patches_256_sorted'
-                         (default: None)
-
   --patch_pattern PATCH_PATTERN
                         '/' separated words describing the directory structure of the patch paths. The words are ('annotation', 'subtype', 'slide', 'patch_size', 'magnification'). A non-multiscale patch can be contained in a directory /path/to/patch/rootdir/Tumor/MMRD/VOA-1234/1_2.png so its patch_pattern is annotation/subtype/slide. A multiscale patch can be contained in a directory /path/to/patch/rootdir/Stroma/P53ABN/VOA-1234/10/3_400.png so its patch_pattern is annotation/subtype/slide/magnification
                          (default: annotation/subtype/slide)
@@ -179,7 +184,7 @@ optional arguments:
                         Select at most max_patient_patches number of patches from each patient.
                          (default: None)
 
-```  
+```
 TODO: there is a chance --balance_patches sets empty groups. This happens if any patches for some (group, category) is zero.
 TODO: in create_groups, variables are named 'subtype' instead of 'category'. That leads to confusion.
 TODO: further explain how --max_patient_patches works in description.

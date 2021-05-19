@@ -5,7 +5,7 @@ echo """# Create Groups
 
 \`\`\`
 Date Created: 22 July 2020
-Last Update: 10 March 2021 by Amirali
+Last Update: 18 May 2021 by Amirali
 Developer: Colin Chen
 Version: 1.0
 \`\`\`
@@ -25,7 +25,7 @@ python app.py from-experiment-manifest -h >> README.md
 echo >> README.md
 python app.py from-arguments -h >> README.md
 echo >> README.md
-echo """\`\`\`  
+echo """\`\`\`
 TODO: there is a chance --balance_patches sets empty groups. This happens if any patches for some (group, category) is zero.
 TODO: in create_groups, variables are named 'subtype' instead of 'category'. That leads to confusion.
 TODO: further explain how --max_patient_patches works in description.

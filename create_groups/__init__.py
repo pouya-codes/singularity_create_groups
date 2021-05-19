@@ -10,6 +10,8 @@ import functools
 import sys
 import os.path
 
+import h5py
+import fnmatch
 import numpy as np
 
 import submodule_utils as utils
@@ -59,6 +61,9 @@ class GroupCreator(OutputMixin):
 
     patch_location : str
         root directory of all patches of a study. The patch directory structure is '/patch_location/patch_pattern/x_y.png'
+
+    hd5_location : str
+        root directory of all hd5 of a study.
 
     patch_pattern : dict
         Dictionary describing the directory structure of the patch paths.
@@ -113,6 +118,55 @@ class GroupCreator(OutputMixin):
             patch_paths += glob.glob(os.path.join(patch_path_wildcard))
         return patch_paths
 
+    def get_hd5_paths(self):
+        """Get patch paths from hd5 location that match the patch paths. Filters patch paths by values of words.
+
+        Returns
+        -------
+        list of str
+            List of patch paths
+        """
+        patch_paths_ = []
+        for file in glob.glob(f"{self.hd5_location}/*.h5"):
+            with h5py.File(file, "r") as f:
+                for key in f.keys():
+                    patch_paths_.extend(list(f[key]))
+
+        patch_paths = []
+        patch_path_wildcard = patch_paths_[0]
+        for _ in range(len(self.patch_pattern)+1):
+            patch_path_wildcard = os.path.dirname(patch_path_wildcard)
+        patterns = sorted([[v, k] for k, v in self.patch_pattern.items()],
+                key=lambda x: x[0])
+        patterns = map(lambda x: x[1], patterns)
+        for word in patterns:
+            if word in self.filter_labels:
+                if word=='subtype':
+                    patch_path_wildcard = os.path.join(patch_path_wildcard, '**')
+                else:
+                    patch_path_wildcard = os.path.join(patch_path_wildcard,
+                                                       self.filter_labels[word])
+            else:
+                patch_path_wildcard = os.path.join(patch_path_wildcard, '**')
+        patch_path_wildcard = os.path.join(patch_path_wildcard, '*.png')
+        if 'subtype' in self.filter_labels:
+            new_patch_path_wildcards = utils.get_subtype_paths(self.filter_labels['subtype'],
+                                                               self.patch_pattern,
+                                                               patch_path_wildcard)
+            for new_patch_path_wildcard in new_patch_path_wildcards:
+                patch_paths.extend(fnmatch.filter(patch_paths_, new_patch_path_wildcard))
+        else:
+            patch_paths.extend(fnmatch.filter(patch_paths_, patch_path_wildcard))
+        return patch_paths
+
+    @property
+    def should_use_extracted_patches(self):
+        return self.load_method == 'use-extracted-patches'
+
+    @property
+    def should_use_hd5(self):
+        return self.load_method == 'use-hd5'
+
     def __init__(self, config):
         """Initialize create groups component.
 
@@ -127,7 +181,6 @@ class GroupCreator(OutputMixin):
         self.CategoryEnum = utils.create_category_enum(self.is_binary, config.subtypes)
         self.is_multiscale = config.is_multiscale
         self.dataset_origin = config.dataset_origin
-        self.patch_location = config.patch_location
         self.patch_pattern = utils.create_patch_pattern(config.patch_pattern)
         self.filter_labels = config.filter_labels
         self.out_location = config.out_location
@@ -137,6 +190,14 @@ class GroupCreator(OutputMixin):
         self.max_patient_patches = config.max_patient_patches
         # modify in code for debugging
         self.debug = False
+        self.load_method = config.load_method
+        if self.should_use_extracted_patches:
+            self.patch_location = config.patch_location
+        elif self.should_use_hd5:
+            self.hd5_location = config.hd5_location
+        else:
+            raise NotImplementedError(f"Load method {self.load_method} not implemented")
+
 
     def select_patches_from_dict_as_dict(self, dict_patch, max_patches):
         """Select at most max_patches patches from dict_patch, returning the patches as a dict.
@@ -420,13 +481,18 @@ class GroupCreator(OutputMixin):
         for group_idx in range(self.n_groups):
             groups_subtypes['group_' + str(group_idx + 1)] = {subtype_name: [] for subtype_name in subtype_names}
 
-        if os.path.isdir(self.patch_location):
+        if self.should_use_extracted_patches and os.path.isdir(self.patch_location):
             patch_paths = self.get_patch_paths()
+        elif self.should_use_hd5 and os.path.isdir(self.hd5_location):
+            patch_paths = self.get_hd5_paths()
         else:
             raise NotImplementedError
 
         if len(patch_paths) == 0:
-            raise Exception(f'No patches are obtained from patch_location {self.patch_location}')
+            if self.should_use_extracted_patches:
+                raise Exception(f'No patches are obtained from patch_location {self.patch_location}')
+            else:
+                raise Exception(f'No patches are obtained from patch_location {self.hd5_location}')
 
         subtype_patient_slide_patch = utils.create_subtype_patient_slide_patch_dict(
                 patch_paths, self.patch_pattern, self.CategoryEnum,

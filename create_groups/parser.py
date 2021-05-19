@@ -125,11 +125,6 @@ def create_parser(parser):
             f"Should be from {tuple(DATASET_ORIGINS)}. "
             "(For multiple origins, works for TCGA+ovcare. Mix of Other origins must be tested.)")
 
-    parser.add_argument("--patch_location", type=dir_path, required=True,
-            help="root directory of all patches of a study. The patch directory structure is "
-            "'/patch_location/patch_pattern/x_y.png'. See --patch_pattern below. An example is "
-            "'/projects/ovcare/classification/cchen/ml/data/local_ec_100/patches_256_sorted'")
-
     parser.add_argument("--patch_pattern", type=str,
             default=default_patch_pattern,
             help="'/' separated words describing the directory structure of the "
@@ -162,6 +157,29 @@ def create_parser(parser):
 
     parser.add_argument("--max_patient_patches", type=int, required=False,
             help="Select at most max_patient_patches number of patches from each patient.")
+
+    help_subparsers_load = """Specify how to load patches.
+    There are 2 ways of loading patches: by use_extracted_patches and by use_hd5."""
+    subparsers_load = parser.add_subparsers(dest='load_method',
+            required=True,
+            parser_class=AIMArgumentParser,
+            help=help_subparsers_load)
+
+    help_extracted_patches = """Use extracted and saved patches"""
+    parser_manifest = subparsers_load.add_parser("use-extracted-patches",
+            help=help_extracted_patches)
+
+    parser_manifest.add_argument("--patch_location", type=dir_path, required=True,
+            help="root directory of all patches of a study. The patch directory structure is "
+            "'/patch_location/patch_pattern/x_y.png'. See --patch_pattern below. An example is "
+            "'/projects/ovcare/classification/cchen/ml/data/local_ec_100/patches_256_sorted'")
+
+    help_hd5 = """Use hd5 files"""
+    parser_manifest = subparsers_load.add_parser("use-hd5",
+            help=help_hd5)
+
+    parser_manifest.add_argument("--hd5_location", type=dir_path, required=True,
+            help="root directory of all hd5 of a study.")
 
 def get_args():
         parser = create_parser()
