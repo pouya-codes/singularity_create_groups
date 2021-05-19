@@ -25,6 +25,10 @@ python app.py from-experiment-manifest -h >> README.md
 echo >> README.md
 python app.py from-arguments -h >> README.md
 echo >> README.md
+python app.py from-arguments use-extracted-patches -h >> README.md
+echo >> README.md
+python app.py from-arguments use-hd5 -h >> README.md
+echo >> README.md
 echo """\`\`\`
 TODO: there is a chance --balance_patches sets empty groups. This happens if any patches for some (group, category) is zero.
 TODO: in create_groups, variables are named 'subtype' instead of 'category'. That leads to confusion.

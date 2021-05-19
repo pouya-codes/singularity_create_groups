@@ -184,6 +184,25 @@ optional arguments:
                         Select at most max_patient_patches number of patches from each patient.
                          (default: None)
 
+usage: app.py from-arguments use-extracted-patches [-h] --patch_location
+                                                   PATCH_LOCATION
+
+optional arguments:
+  -h, --help            show this help message and exit
+
+  --patch_location PATCH_LOCATION
+                        root directory of all patches of a study. The patch directory structure is '/patch_location/patch_pattern/x_y.png'. See --patch_pattern below. An example is '/projects/ovcare/classification/cchen/ml/data/local_ec_100/patches_256_sorted'
+                         (default: None)
+
+usage: app.py from-arguments use-hd5 [-h] --hd5_location HD5_LOCATION
+
+optional arguments:
+  -h, --help            show this help message and exit
+
+  --hd5_location HD5_LOCATION
+                        root directory of all hd5 of a study.
+                         (default: None)
+
 ```
 TODO: there is a chance --balance_patches sets empty groups. This happens if any patches for some (group, category) is zero.
 TODO: in create_groups, variables are named 'subtype' instead of 'category'. That leads to confusion.
