@@ -129,9 +129,10 @@ class GroupCreator(OutputMixin):
         patch_paths_ = []
         for file in glob.glob(f"{self.hd5_location}/*.h5"):
             with h5py.File(file, "r") as f:
-                for key in f.keys():
-                    patch_paths_.extend(list(f[key]))
-
+                patch_paths_.extend(list(f['paths']))
+        print(patch_paths_)
+        patch_paths_ = [path.decode("utf-8") for path in patch_paths_]
+        print(patch_paths_)
         patch_paths = []
         patch_path_wildcard = patch_paths_[0]
         for _ in range(len(self.patch_pattern)+1):
