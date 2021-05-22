@@ -28,5 +28,7 @@ From: debian:9
     conda update conda
 
     pip install pyyaml h5py openslide-python tabulate matplotlib pandas Shapely numpy pytest
+    pip install --upgrade h5py
+    
 %runscript
     python app.py $*
