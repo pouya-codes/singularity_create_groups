@@ -5,9 +5,9 @@ echo """# Create Groups
 
 \`\`\`
 Date Created: 22 July 2020
-Last Update: 18 May 2021 by Amirali
+Last Update: 26 July 2021 by Amirali
 Developer: Colin Chen
-Version: 1.0
+Version: 1.3
 \`\`\`
 
 **Before running any experiment to be sure you are using the latest commits of all modules run the following script:**
@@ -27,7 +27,15 @@ python app.py from-arguments -h >> README.md
 echo >> README.md
 python app.py from-arguments use-extracted-patches -h >> README.md
 echo >> README.md
+python app.py from-arguments use-extracted-patches use-manifest -h >> README.md
+echo >> README.md
+python app.py from-arguments use-extracted-patches use-origin -h >> README.md
+echo >> README.md
 python app.py from-arguments use-hd5 -h >> README.md
+echo >> README.md
+python app.py from-arguments use-hd5 use-manifest -h >> README.md
+echo >> README.md
+python app.py from-arguments use-hd5 use-origin -h >> README.md
 echo >> README.md
 echo """\`\`\`
 TODO: there is a chance --balance_patches sets empty groups. This happens if any patches for some (group, category) is zero.

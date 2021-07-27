@@ -130,6 +130,7 @@ class GroupCreator(OutputMixin):
         for file in glob.glob(f"{self.hd5_location}/*.h5"):
             with h5py.File(file, "r") as f:
                 patch_paths_.extend(list(f['paths']))
+                # print(list(f['paths']))
         patch_paths_ = [path.decode("utf-8") for path in patch_paths_]
         patch_paths = []
         patch_path_wildcard = patch_paths_[0]
@@ -166,6 +167,14 @@ class GroupCreator(OutputMixin):
     def should_use_hd5(self):
         return self.load_method == 'use-hd5'
 
+    @property
+    def should_use_manifest(self):
+        return self.define_method == 'use-manifest'
+
+    @property
+    def should_use_origin(self):
+        return self.define_method == 'use-origin'
+
     def __init__(self, config):
         """Initialize create groups component.
 
@@ -179,7 +188,6 @@ class GroupCreator(OutputMixin):
         self.is_binary = config.is_binary
         self.CategoryEnum = utils.create_category_enum(self.is_binary, config.subtypes)
         self.is_multiscale = config.is_multiscale
-        self.dataset_origin = config.dataset_origin
         self.patch_pattern = utils.create_patch_pattern(config.patch_pattern)
         self.filter_labels = config.filter_labels
         self.out_location = config.out_location
@@ -190,12 +198,22 @@ class GroupCreator(OutputMixin):
         # modify in code for debugging
         self.debug = False
         self.load_method = config.load_method
+        self.define_method = config.define_method
         if self.should_use_extracted_patches:
             self.patch_location = config.patch_location
         elif self.should_use_hd5:
             self.hd5_location = config.hd5_location
         else:
-            raise NotImplementedError(f"Load method {self.load_method} not implemented")
+            raise NotImplementedError(f"Load method {self.load_method} is not implemented")
+
+        if self.should_use_manifest:
+            self.manifest = utils.read_manifest(config.manifest_location)
+            self.dataset_origin = list(set(self.manifest['origin']))
+            self.dataset_origin = [orig.lower() for orig in self.dataset_origin]
+        elif self.should_use_origin:
+            self.dataset_origin = config.dataset_origin
+        else:
+            raise NotImplementedError(f"Define method {self.define_method} is not implemented")
 
 
     def select_patches_from_dict_as_dict(self, dict_patch, max_patches):
@@ -397,7 +415,8 @@ class GroupCreator(OutputMixin):
         markdown_patch_output += self.markdown_header('Patch Counts')
 
         for group_id, patch_paths in groups.items():
-            patients = set()
+            # patients = set()
+            patients = {origin: set() for origin in self.dataset_origin}
             subtype_patient_counts = dict(
                 zip(subtype_names, [0 for s in subtype_names]))
             subtype_patch_counts = dict(
@@ -408,13 +427,15 @@ class GroupCreator(OutputMixin):
                 slide_id = utils.get_slide_by_patch_id(patch_id, self.patch_pattern)
                 patient_num = utils.get_patient_by_slide_id(slide_id,
                         dataset_origin=self.dataset_origin)
-                if patient_num not in patients:
+                # if patient_num not in patients:
+                if patient_num not in patients[utils.get_origin(slide_id)]:
                     patient_subtype = utils.get_label_by_patch_id(
                             patch_id, self.patch_pattern, self.CategoryEnum,
                             is_binary=self.is_binary).name
                     subtype_patient_counts[patient_subtype] += 1
 
-                patients.add(patient_num)
+                # patients.add(patient_num)
+                patients[utils.get_origin(slide_id)].add(patient_num)
                 patch_subtype = utils.get_label_by_patch_id(
                         patch_id, self.patch_pattern, self.CategoryEnum,
                         is_binary=self.is_binary).name
@@ -426,27 +447,12 @@ class GroupCreator(OutputMixin):
                     slide_count_set.add(slide_id)
                     total_slide_counts[patch_subtype] += 1
 
-            # latex_output += self.latex_formatter(np.asarray(
-            #         [subtype_patient_counts[s.name] for s in self.CategoryEnum]),
-            #         ' Patient in Group ' + group_id.split('_')[-1])
-            # latex_output += self.latex_formatter(np.asarray(
-            #         [subtype_patch_counts[s.name] for s in self.CategoryEnum]),
-            #         ' Patch in Group ' + group_id.split('_')[-1])
-
             markdown_patient_output += self.markdown_formatter(np.asarray(
                     [subtype_patient_counts[s.name] for s in self.CategoryEnum]),
                     ' Patient in Group ' + group_id.split('_')[-1])
             markdown_patch_output += self.markdown_formatter(np.asarray(
                     [subtype_patch_counts[s.name] for s in self.CategoryEnum]),
                     ' Patch in Group ' + group_id.split('_')[-1])
-
-
-        # latex_output += self.latex_formatter(np.asarray(
-        #         [total_slide_counts[s.name] for s in self.CategoryEnum]),
-        #         'Whole Slide Image')
-        # latex_output += self.latex_formatter(np.asarray(
-        #         [total_patch_counts[s.name] for s in self.CategoryEnum]),
-        #         'Patch')
 
         markdown_patient_output += self.markdown_formatter(np.asarray(
                 [total_slide_counts[s.name] for s in self.CategoryEnum]),
@@ -455,8 +461,6 @@ class GroupCreator(OutputMixin):
                 [total_patch_counts[s.name] for s in self.CategoryEnum]),
                 'Total')
 
-        #print(latex_output)
-        #print()
         print(markdown_patient_output)
         print()
         print(markdown_patch_output)
@@ -493,9 +497,14 @@ class GroupCreator(OutputMixin):
             else:
                 raise Exception(f'No patches are obtained from patch_location {self.hd5_location}')
 
-        subtype_patient_slide_patch = utils.create_subtype_patient_slide_patch_dict(
-                patch_paths, self.patch_pattern, self.CategoryEnum,
-                is_binary=self.is_binary, dataset_origin=self.dataset_origin)
+        if self.should_use_origin:
+            subtype_patient_slide_patch = utils.create_subtype_patient_slide_patch_dict(
+                    patch_paths, self.patch_pattern, self.CategoryEnum,
+                    is_binary=self.is_binary, dataset_origin=self.dataset_origin)
+        else:
+            subtype_patient_slide_patch = utils.create_subtype_patient_slide_patch_dict_manifest(
+                    patch_paths, self.patch_pattern, self.CategoryEnum,
+                    self.manifest, is_binary=self.is_binary)
 
         for subtype, patient_slide_patch in subtype_patient_slide_patch.items():
             for patient, slide_patch in patient_slide_patch.items():
@@ -521,8 +530,9 @@ class GroupCreator(OutputMixin):
             for origin in self.dataset_origin:
                 patient_subtype_origin_dict[subtype][origin]  = []
         for subtype, patients in subtype_patient_slide_patch.items():
-            for patient, slides in patients.items():
-                patient_subtype_origin_dict[subtype][utils.get_origin(next(iter(slides)), self.dataset_origin)] += [patient]
+            for patient in patients.keys():
+                origin = patient[:patient.find('__')]
+                patient_subtype_origin_dict[subtype][origin] += [patient]
 
         # dict {subtype: {origin: number of patients }}
         patient_subtype_origin_count = dict(

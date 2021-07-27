@@ -5,9 +5,9 @@
 
 ```
 Date Created: 22 July 2020
-Last Update: 18 May 2021 by Amirali
+Last Update: 26 July 2021 by Amirali
 Developer: Colin Chen
-Version: 1.0
+Version: 1.3
 ```
 
 **Before running any experiment to be sure you are using the latest commits of all modules run the following script:**
@@ -115,7 +115,6 @@ usage: app.py from-arguments [-h] [--seed SEED] [--n_groups N_GROUPS]
                              [--subtypes SUBTYPES [SUBTYPES ...]]
                              [--is_binary] [--is_multiscale]
                              [--balance_patches BALANCE_PATCHES]
-                             [--dataset_origin DATASET_ORIGIN [DATASET_ORIGIN ...]]
                              [--patch_pattern PATCH_PATTERN]
                              [--filter_labels FILTER_LABELS [FILTER_LABELS ...]]
                              --out_location OUT_LOCATION
@@ -156,10 +155,6 @@ optional arguments:
                         Optional method to balance patches. Can choose (1) ('group', 'overall', 'category') or (2) one of ('group=cap_amt', 'overall=cap_amt', 'category=cap_amt').In the case (1), we will balance out the patches in every group, category, or overall (see description for more details). In case (2), we will cap the number of patches in every group, category, or overall to the number cap_amt.
                          (default: None)
 
-  --dataset_origin DATASET_ORIGIN [DATASET_ORIGIN ...]
-                        List of the origins of the slide dataset the patches are generated from. Should be from ('ovcare', 'tcga', 'other'). (For multiple origins, works for TCGA+ovcare. Mix of Other origins must be tested.)
-                         (default: ['ovcare'])
-
   --patch_pattern PATCH_PATTERN
                         '/' separated words describing the directory structure of the patch paths. The words are ('annotation', 'subtype', 'slide', 'patch_size', 'magnification'). A non-multiscale patch can be contained in a directory /path/to/patch/rootdir/Tumor/MMRD/VOA-1234/1_2.png so its patch_pattern is annotation/subtype/slide. A multiscale patch can be contained in a directory /path/to/patch/rootdir/Stroma/P53ABN/VOA-1234/10/3_400.png so its patch_pattern is annotation/subtype/slide/magnification
                          (default: annotation/subtype/slide)
@@ -186,6 +181,20 @@ optional arguments:
 
 usage: app.py from-arguments use-extracted-patches [-h] --patch_location
                                                    PATCH_LOCATION
+                                                   {use-manifest,use-origin}
+                                                   ...
+
+positional arguments:
+  {use-manifest,use-origin}
+                        Specify how to define patient ID and slide ID:
+                                1. use-manifest 2. origin
+    use-manifest        Use manifest file to locate slides.
+                                a CSV file with minimum of 4 column and maximum of 6 columns. The name of columns
+                                should be among ['origin', 'patient_id', 'slide_id', 'slide_path', 'annotation_path', 'subtype'].
+                                origin, slide_id, patient_id must be one of the columns.
+
+    use-origin          Use origin for detecting patient ID and slide ID.
+                                NOTE: It only works for German, OVCARE, and TCGA.
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -194,7 +203,40 @@ optional arguments:
                         root directory of all patches of a study. The patch directory structure is '/patch_location/patch_pattern/x_y.png'. See --patch_pattern below. An example is '/projects/ovcare/classification/cchen/ml/data/local_ec_100/patches_256_sorted'
                          (default: None)
 
+usage: app.py from-arguments use-extracted-patches use-manifest
+       [-h] --manifest_location MANIFEST_LOCATION
+
+optional arguments:
+  -h, --help            show this help message and exit
+
+  --manifest_location MANIFEST_LOCATION
+                        Path to manifest CSV file.
+                         (default: None)
+
+usage: app.py from-arguments use-extracted-patches use-origin
+       [-h] [--dataset_origin DATASET_ORIGIN [DATASET_ORIGIN ...]]
+
+optional arguments:
+  -h, --help            show this help message and exit
+
+  --dataset_origin DATASET_ORIGIN [DATASET_ORIGIN ...]
+                        List of the origins of the slide dataset the patches are generated from. Should be from ('ovcare', 'tcga', 'german', 'other'). (For multiple origins, works for TCGA+ovcare. Mix of Other origins must be tested.)
+                         (default: ['ovcare'])
+
 usage: app.py from-arguments use-hd5 [-h] --hd5_location HD5_LOCATION
+                                     {use-manifest,use-origin} ...
+
+positional arguments:
+  {use-manifest,use-origin}
+                        Specify how to define patient ID and slide ID:
+                                1. use-manifest 2. origin
+    use-manifest        Use manifest file to locate slides.
+                                a CSV file with minimum of 4 column and maximum of 6 columns. The name of columns
+                                should be among ['origin', 'patient_id', 'slide_id', 'slide_path', 'annotation_path', 'subtype'].
+                                origin, slide_id, patient_id must be one of the columns.
+
+    use-origin          Use origin for detecting patient ID and slide ID.
+                                NOTE: It only works for German, OVCARE, and TCGA.
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -202,6 +244,26 @@ optional arguments:
   --hd5_location HD5_LOCATION
                         root directory of all hd5 of a study.
                          (default: None)
+
+usage: app.py from-arguments use-hd5 use-manifest [-h] --manifest_location
+                                                  MANIFEST_LOCATION
+
+optional arguments:
+  -h, --help            show this help message and exit
+
+  --manifest_location MANIFEST_LOCATION
+                        Path to manifest CSV file.
+                         (default: None)
+
+usage: app.py from-arguments use-hd5 use-origin [-h]
+                                                [--dataset_origin DATASET_ORIGIN [DATASET_ORIGIN ...]]
+
+optional arguments:
+  -h, --help            show this help message and exit
+
+  --dataset_origin DATASET_ORIGIN [DATASET_ORIGIN ...]
+                        List of the origins of the slide dataset the patches are generated from. Should be from ('ovcare', 'tcga', 'german', 'other'). (For multiple origins, works for TCGA+ovcare. Mix of Other origins must be tested.)
+                         (default: ['ovcare'])
 
 ```
 TODO: there is a chance --balance_patches sets empty groups. This happens if any patches for some (group, category) is zero.

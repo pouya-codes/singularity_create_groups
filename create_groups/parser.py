@@ -119,12 +119,6 @@ def create_parser(parser):
             "(see description for more details). In case (2), we will cap the number of patches in "
             "every group, category, or overall to the number cap_amt.")
 
-    parser.add_argument('--dataset_origin', type=dataset_origin, nargs='+',
-            default=default_dataset_origin,
-            help="List of the origins of the slide dataset the patches are generated from. "
-            f"Should be from {tuple(DATASET_ORIGINS)}. "
-            "(For multiple origins, works for TCGA+ovcare. Mix of Other origins must be tested.)")
-
     parser.add_argument("--patch_pattern", type=str,
             default=default_patch_pattern,
             help="'/' separated words describing the directory structure of the "
@@ -175,11 +169,43 @@ def create_parser(parser):
             "'/projects/ovcare/classification/cchen/ml/data/local_ec_100/patches_256_sorted'")
 
     help_hd5 = """Use hd5 files"""
-    parser_manifest = subparsers_load.add_parser("use-hd5",
+    parser_hd5 = subparsers_load.add_parser("use-hd5",
             help=help_hd5)
 
-    parser_manifest.add_argument("--hd5_location", type=dir_path, required=True,
+    parser_hd5.add_argument("--hd5_location", type=dir_path, required=True,
             help="root directory of all hd5 of a study.")
+
+    subparsers_load_list = [parser_manifest, parser_hd5]
+
+    for subparser in subparsers_load_list:
+        help_subparsers_define = """Specify how to define patient ID and slide ID:
+        1. use-manifest 2. origin"""
+        subparsers_define = subparser.add_subparsers(dest="define_method",
+                required=True,
+                parser_class=AIMArgumentParser,
+                help=help_subparsers_define)
+
+        help_manifest_ = """Use manifest file to locate slides.
+        a CSV file with minimum of 4 column and maximum of 6 columns. The name of columns
+        should be among ['origin', 'patient_id', 'slide_id', 'slide_path', 'annotation_path', 'subtype'].
+        origin, slide_id, patient_id must be one of the columns."""
+
+        parser_manifest_ = subparsers_define.add_parser("use-manifest",
+                help=help_manifest_)
+        parser_manifest_.add_argument("--manifest_location", type=file_path, required=True,
+                help="Path to manifest CSV file.")
+
+        help_origin = """Use origin for detecting patient ID and slide ID.
+        NOTE: It only works for German, OVCARE, and TCGA."""
+
+        parser_origin = subparsers_define.add_parser("use-origin",
+                help=help_origin)
+        parser_origin.add_argument('--dataset_origin', type=dataset_origin, nargs='+',
+                default=default_dataset_origin,
+                help="List of the origins of the slide dataset the patches are generated from. "
+                f"Should be from {tuple(DATASET_ORIGINS)}. "
+                "(For multiple origins, works for TCGA+ovcare. Mix of Other origins must be tested.)")
+
 
 def get_args():
         parser = create_parser()
