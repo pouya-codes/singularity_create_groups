@@ -116,6 +116,7 @@ class GroupCreator(OutputMixin):
                 patch_paths += glob.glob(os.path.join(new_patch_path_wildcard))
         else:
             patch_paths += glob.glob(os.path.join(patch_path_wildcard))
+        patch_paths.sort()
         return patch_paths
 
     def get_hd5_paths(self):
