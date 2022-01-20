@@ -107,7 +107,8 @@ class GroupCreator(OutputMixin):
                                                        self.filter_labels[word])
             else:
                 patch_path_wildcard = os.path.join(patch_path_wildcard, '**')
-        patch_path_wildcard = os.path.join(patch_path_wildcard, '*.png')
+        patch_path_wildcard = os.path.join(patch_path_wildcard, r'*.[jp][pn]g')
+        
         if 'subtype' in self.filter_labels:
             new_patch_path_wildcards = utils.get_subtype_paths(self.filter_labels['subtype'],
                                                                self.patch_pattern,
