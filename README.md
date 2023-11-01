@@ -3,12 +3,7 @@
 
 ### Development Information ###
 
-```
-Date Created: 22 July 2020
-Last Update: 26 July 2021 by Amirali
-Developer: Colin Chen
-Version: 1.3
-```
+
 
 **Before running any experiment to be sure you are using the latest commits of all modules run the following script:**
 ```
